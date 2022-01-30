@@ -27,7 +27,7 @@ const sapmleArticle = {
     urlToImage: 'https://via.placeholder.com/160'
 };
 
-const NewsList = () => {
+const NewsList = ({category}) => { // props로 받아온 category
     const [articles, setArticles] = useState(null);
     // API 요청 대기중일때 true, 끝나면 false
     const [loading, setLoading] = useState(false);
@@ -37,8 +37,12 @@ const NewsList = () => {
         const fetchData = async() => {
             setLoading(true); // 요청 대기중
             try{
+                // 현재 category값 무엇인지에 따라 요청할 주소가 동적으로 바뀌고 있다
+                // category값이 all 이면 query값은 공백, 아니면 '&categpry=카테고리' 형태의 문자열 만들도록 함
+                // 그리고 이 query 요청할 때 주소에 포함시켜줌
+                const query = category === 'all' ? '' : `&category=${category}`;
                 const response = await axios.get(
-                    'https://newsapi.org/v2/top-headlines?country=us&apiKey=b1018dcfde7246b2a3924270fb22d4b1'
+                    `https://newsapi.org/v2/top-headlines?country=us${query}&apiKey=b1018dcfde7246b2a3924270fb22d4b1`
                 );
                 setArticles(response.data.articles); // 위 주소에서 받아온 데이터에서 articles 꺼냄
             } catch (e) {
@@ -47,7 +51,7 @@ const NewsList = () => {
             setLoading(false); // 요청 끝남
         };
         fetchData();
-    }, []);
+    }, [category]); // category값 바뀔때마다 뉴스 새로 불러와야 함.
 
     // 대기 중일 때
     if (loading) {
