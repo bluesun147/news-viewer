@@ -1,11 +1,9 @@
-import React, {useState, useEffect} from "react";
+import React from "react";
 import styled from "styled-components";
 import NewsItem from "./NewsItem";
 import axios from 'axios';
-
+import usePromise from "./lib/usePromise";
 // NewsList.js
-// API 요청하고 뉴스 데이터가 들어있는 배열을 
-// 컴포넌트 배열로 변환해 렌더링해주는 컴포넌트
 const NewsListBlock = styled.div`
 box-sizing:border-box;
 padding-bottom:3rem;
@@ -18,59 +16,34 @@ padding-left:1rem
 padding-right:1rem
 }`
 
-// 나중에 이 컴포넌트에서 API 요청하게 됨
-// 아직 데이터 불러오고 있지 않으니 예시 데이터 넣고 보이게.
-const sapmleArticle = {
-    title: 'title',
-    description: 'des',
-    url: 'https://google.com',
-    urlToImage: 'https://via.placeholder.com/160'
-};
-
-const NewsList = ({category}) => { // props로 받아온 category
-    const [articles, setArticles] = useState(null);
-    // API 요청 대기중일때 true, 끝나면 false
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        // async 사용하는 함수 따로 선언
-        const fetchData = async() => {
-            setLoading(true); // 요청 대기중
-            try{
-                // 현재 category값 무엇인지에 따라 요청할 주소가 동적으로 바뀌고 있다
-                // category값이 all 이면 query값은 공백, 아니면 '&categpry=카테고리' 형태의 문자열 만들도록 함
-                // 그리고 이 query 요청할 때 주소에 포함시켜줌
-                const query = category === 'all' ? '' : `&category=${category}`;
-                const response = await axios.get(
-                    `https://newsapi.org/v2/top-headlines?country=us${query}&apiKey=b1018dcfde7246b2a3924270fb22d4b1`
-                );
-                setArticles(response.data.articles); // 위 주소에서 받아온 데이터에서 articles 꺼냄
-            } catch (e) {
-                console.log(e);
-            }
-            setLoading(false); // 요청 끝남
-        };
-        fetchData();
-    }, [category]); // category값 바뀔때마다 뉴스 새로 불러와야 함.
+const NewsList = ({category}) => {
+    const [loading, response, error] = usePromise(() => {
+        const query = category === 'all' ? '' : `&category=${category}`;
+        return axios.get(`https://newsapi.org/v2/top-headlines?country=us${query}&apiKey=b1018dcfde7246b2a3924270fb22d4b1`);
+    }, [category]);
 
     // 대기 중일 때
     if (loading) {
-        return <NewsListBlock>대기 중...</NewsListBlock>
+        return <NewsListBlock>대기 중...</NewsListBlock>;
     }
-    // 아직 articles 값 설정안됐을 때
-    if (!articles) { // 현재값 null 아닌지 검사 필수
+
+    // 아직 response 값이 설정되지 않았을 때
+    if (!response) {
         return null;
     }
-    // articles 값 유효할 때
+
+    // 에러 발생 시
+    if (error) {
+        return <NewsListBlock>에러 발생!!</NewsListBlock>
+    }
+
+    // response 값이 유효할 때
+    const {articles} = response.data;
     return (
         <NewsListBlock>
-            {// 데이터를 불러와서 뉴스 테이터 배열을 map함수 사용해 컴포넌트 배열로 변환
-            // 주의할 점은 map 사용하기 전에 꼭 현재 값이 null이 아닌지 검사해야 함
-            // 데이터 없을 때 null에는 map함수 없기때문에 렌더링 과정에서 오류 발생함
-                articles.map(article => (
-                    <NewsItem key = {article.url} article = {article}/>
-                ))
-            }
+            {articles.map(article => (
+                <NewsItem key = {articles.url} article = {article} />
+            ))}
         </NewsListBlock>
     );
 };
