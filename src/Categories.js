@@ -1,5 +1,6 @@
 import React from "react";
-import styled, {css} from "styled-components";
+import styled from "styled-components";
+import { NavLink } from "react-router-dom";
 // Categories.js
 // categories 배열 안에 name과 text값 들어있는
 // 객체 넣어 한글로 된 카테고리와 실제 카테고리 값 연결시킴
@@ -45,7 +46,8 @@ width:100%;
 overflow-x:auto;
 }`
 
-const Category = styled.div`
+//const Category = styled.div`
+const Category = styled(NavLink)`
   font-size: 1.125rem;
   cursor: pointer;
   white-space: pre;
@@ -56,29 +58,31 @@ const Category = styled.div`
     color: #495057;
   }
 
-  ${props =>
-    props.active && css`
-      font-weight: 600;
-      border-bottom: 2px solid #22b8cf;
-      color: #22b8cf;
-      &:hover {
-        color: #3bc9db;
-      }
-  `}
+  
+&.active {
+    font-weight: 600;
+    border-bottom: 2px solid #22b8cf;
+    color: #22b8cf;
+    &:hover {
+    color: #3bc9db;
+    }
+}
 
 & + & {
     margin-left: 1rem;
   }
 `;
 
-const Categories = ({onSelect, category}) => { // 파라미터에 props
+const Categories = () => { // 파라미터에 props
     return (
         <CategoriesBlock>
             
             {categories.map(c => ( // categories배열을 Category컴포넌트 배열로 변환
                 <Category key = {c.name} 
-                active = {category === c.name} 
-                onClick={() => onSelect(c.name)}>{c.text}</Category>
+                activeClassName = "active"
+                exact = {c.name === 'all'}
+                to = {c.name === 'all' ? `/` : `/${c.name}`}
+                >{c.text}</Category>
         ))}
         </CategoriesBlock>
     );
